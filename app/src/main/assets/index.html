@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>贪吃蛇大战</title>
+<style>
+:root{--bg:#0b1020;--panel:#141c31;--line:#263653;--lime:#a3ff5f;--cyan:#52e6ff;--text:#f4f7ff;--muted:#9caecb;--pink:#ff5e8a}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at top,#18284a 0%,var(--bg) 65%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}
+body{padding:env(safe-area-inset-top) 14px env(safe-area-inset-bottom);display:flex;justify-content:center}
+.app{width:min(100%,520px);padding:16px 0 24px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.brand{display:flex;align-items:center;gap:10px}.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--lime),#35d69b);display:grid;place-items:center;color:#0b1020;font-size:24px;box-shadow:0 8px 24px #a3ff5f25}.eyebrow{font-size:11px;letter-spacing:2px;color:var(--lime);font-weight:800}.brand h1{font-size:21px;line-height:1.1;margin:3px 0 0}.pill{font-size:12px;border:1px solid #31513a;color:var(--lime);background:#a3ff5f10;border-radius:999px;padding:7px 10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.stat{background:#141c31cc;border:1px solid var(--line);border-radius:14px;padding:10px 12px}.stat small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}.stat strong{font-size:20px;font-variant-numeric:tabular-nums}.arena{position:relative;border:1px solid #2b3d5d;background:#0a1222;border-radius:20px;padding:8px;box-shadow:0 18px 50px #0005;overflow:hidden}.canvas-wrap{position:relative;width:100%;aspect-ratio:1/1}.canvas-wrap canvas{width:100%;height:100%;display:block;border-radius:13px;touch-action:none}.overlay{position:absolute;inset:0;border-radius:13px;background:#08101bd9;display:flex;align-items:center;justify-content:center;text-align:center;padding:22px;backdrop-filter:blur(5px)}.overlay.hidden{display:none}.modal{max-width:280px}.modal .emoji{font-size:44px;margin-bottom:8px}.modal h2{font-size:25px;margin:0 0 8px}.modal p{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 18px}.btn{border:0;border-radius:13px;background:linear-gradient(135deg,var(--lime),#65e8a6);color:#09101b;font-size:15px;font-weight:900;padding:13px 20px;min-height:46px;cursor:pointer;box-shadow:0 7px 20px #a3ff5f20}.btn:active{transform:scale(.98)}.arena-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;padding:8px 4px 1px}.legend{display:flex;gap:12px;align-items:center}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.control-card{background:#141c31d9;border:1px solid var(--line);border-radius:17px;padding:12px}.control-card h3{margin:0 0 10px;font-size:12px;color:var(--muted);font-weight:700}.dpad{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,43px);gap:6px;max-width:200px;margin:auto}.dir{border:1px solid #304464;background:#1a2944;color:#f5f8ff;border-radius:11px;font-size:20px;font-weight:800;touch-action:manipulation}.dir:active{background:#2a4267}.dir.up{grid-column:2;grid-row:1}.dir.left{grid-column:1;grid-row:2}.dir.down{grid-column:2;grid-row:2}.dir.right{grid-column:3;grid-row:2}.actions{display:flex;flex-direction:column;gap:8px}.actions button{width:100%;min-height:42px;border-radius:11px;border:1px solid #304464;background:#1a2944;color:var(--text);font-weight:700}.actions button.primary{background:#a3ff5f15;border-color:#456b3c;color:var(--lime)}.help{color:var(--muted);font-size:12px;line-height:1.6;text-align:center;margin:12px 6px}.footer{text-align:center;color:#657894;font-size:10px;letter-spacing:1px;margin-top:16px}
+@media(min-width:430px){.app{padding-top:22px}.canvas-wrap{aspect-ratio:1/1}}
+</style>
+</head>
+<body>
+<main class="app">
+ <header class="top"><div class="brand"><div class="logo">🐍</div><div><div class="eyebrow">ARCADE BATTLE</div><h1>贪吃蛇大战</h1></div></div><div class="pill">⚡ 进阶版</div></header>
+ <section class="stats">
+  <div class="stat"><small>你的得分</small><strong id="score">0</strong></div>
+  <div class="stat"><small>对手得分</small><strong id="enemyScore">0</strong></div>
+  <div class="stat"><small>最高纪录</small><strong id="best">0</strong></div>
+ </section>
+ <section class="arena">
+  <div class="canvas-wrap"><canvas id="game" width="420" height="420" aria-label="贪吃蛇游戏区域"></canvas>
+   <div class="overlay" id="overlay"><div class="modal"><div class="emoji" id="modalEmoji">🐍⚔️🐍</div><h2 id="modalTitle">准备开战？</h2><p id="modalText">吃掉能量点，努力长大！<br>避开墙壁、自己和对手。坚持得更久，拿下胜利。</p><button class="btn" id="startBtn">开始游戏</button></div></div>
+  </div>
+  <div class="arena-labels"><span class="legend"><span><i class="dot" style="background:#a3ff5f"></i>你</span><span><i class="dot" style="background:#52e6ff"></i>AI 对手</span></span><span>吃到能量点 +10</span></div>
+ </section>
+ <section class="controls">
+  <div class="control-card"><h3>方向控制</h3><div class="dpad">
+   <button class="dir up" data-dir="up" aria-label="向上">▲</button><button class="dir left" data-dir="left" aria-label="向左">◀</button><button class="dir down" data-dir="down" aria-label="向下">▼</button><button class="dir right" data-dir="right" aria-label="向右">▶</button>
+  </div></div>
+  <div class="control-card"><h3>游戏操作</h3><div class="actions"><button class="primary" id="pauseBtn">⏸ 暂停游戏</button><button id="boostBtn">⚡ 加速冲刺（3秒）</button><button id="shieldBtn">🛡 护盾（防撞一次）</button><button id="restartBtn">↻ 重新开始</button></div></div>
+ </section>
+ <p class="help">新增加速冲刺与一次性护盾技能。也可以在游戏区域滑动控制方向。电脑端支持方向键 / WASD。<br>撞墙、撞到自己或撞上对手，游戏就会结束！</p>
+ <div class="footer">SNAKE BATTLE · ARCADE EDITION</div>
+</main>
+<script>
+(()=>{
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const overlay=document.getElementById('overlay'),startBtn=document.getElementById('startBtn');
+const scoreEl=document.getElementById('score'),enemyScoreEl=document.getElementById('enemyScore'),bestEl=document.getElementById('best');
+const modalEmoji=document.getElementById('modalEmoji'),modalTitle=document.getElementById('modalTitle'),modalText=document.getElementById('modalText'),pauseBtn=document.getElementById('pauseBtn');
+const N=21, cell=20, W=420; let player,enemy,food,score,enemyScore,best=0,running=false,paused=false,ended=false,timer=0,last=0,swipeStart=null,boostUntil=0,shield=false;
+try{best=Number(localStorage.getItem('snakeBattleBest')||0)}catch(e){} bestEl.textContent=best;
+const dirs={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+function same(a,b){return a.x===b.x&&a.y===b.y}
+function rand(){return Math.floor(Math.random()*N)}
+function occupied(p){return player?.body.some(s=>same(s,p))||enemy?.body.some(s=>same(s,p))}
+function placeFood(){let p;do{p={x:rand(),y:rand()}}while(occupied(p));food=p}
+function reset(){boostUntil=0;shield=false;document.getElementById('boostBtn').textContent='⚡ 加速冲刺（3秒）';document.getElementById('shieldBtn').textContent='🛡 护盾（防撞一次）';player={body:[{x:4,y:10},{x:3,y:10},{x:2,y:10}],dir:dirs.right,next:dirs.right};enemy={body:[{x:16,y:10},{x:17,y:10},{x:18,y:10}],dir:dirs.left,next:dirs.left};score=0;enemyScore=0;scoreEl.textContent=0;enemyScoreEl.textContent=0;placeFood();running=false;paused=false;ended=false;timer=0;pauseBtn.textContent='⏸ 暂停游戏';draw()}
+function start(){if(ended)reset();running=true;paused=false;ended=false;overlay.classList.add('hidden');pauseBtn.textContent='⏸ 暂停游戏';last=performance.now();requestAnimationFrame(loop)}
+function show(title,text,emoji='🐍⚔️🐍',button='再来一局'){modalTitle.textContent=title;modalText.innerHTML=text;modalEmoji.textContent=emoji;startBtn.textContent=button;overlay.classList.remove('hidden')}
+function end(won,title,text,emoji){running=false;ended=true;show(title,text,emoji,'再来一局')}
+function turn(d){if(!running||paused||!d)return;const nd=dirs[d];if(nd.x===-player.dir.x&&nd.y===-player.dir.y)return;player.next=nd}
+function aiTurn(){const head=enemy.body[0], options=Object.entries(dirs).filter(([k,d])=>!(d.x===-enemy.dir.x&&d.y===-enemy.dir.y));const target=food;options.sort((a,b)=>{const da=Math.abs(head.x+a[1].x-target.x)+Math.abs(head.y+a[1].y-target.y),db=Math.abs(head.x+b[1].x-target.x)+Math.abs(head.y+b[1].y-target.y);return da-db+(Math.random()-.5)*1.4});for(const [k,d] of options){const p={x:head.x+d.x,y:head.y+d.y};if(p.x<0||p.x>=N||p.y<0||p.y>=N)continue;if(enemy.body.slice(0,-1).some(s=>same(s,p))||player.body.slice(0,-1).some(s=>same(s,p)))continue;enemy.next=d;return}enemy.next=options[0]?.[1]||enemy.dir}
+function stepSnake(s,isPlayer){s.dir=s.next;const h=s.body[0],nh={x:h.x+s.dir.x,y:h.y+s.dir.y};
+if(nh.x<0||nh.x>=N||nh.y<0||nh.y>=N){if(isPlayer&&shield){shield=false;document.getElementById('shieldBtn').textContent='🛡 护盾（防撞一次）';return {dead:false,blocked:true}}return {dead:true}}const eats=same(nh,food);const own=s.body.slice(0,eats?s.body.length:s.body.length-1);if(own.some(p=>same(p,nh))){if(isPlayer&&shield){shield=false;document.getElementById('shieldBtn').textContent='🛡 护盾（防撞一次）';return {dead:false,blocked:true}}return {dead:true}}s.body.unshift(nh);if(!eats)s.body.pop();else{if(isPlayer){score+=10;scoreEl.textContent=score}else{enemyScore+=10;enemyScoreEl.textContent=enemyScore}placeFood()}return {dead:false,head:nh}}
+function tick(){aiTurn();const phead={x:player.body[0].x+player.next.x,y:player.body[0].y+player.next.y};const ehead={x:enemy.body[0].x+enemy.next.x,y:enemy.body[0].y+enemy.next.y};const p=stepSnake(player,true);const e=stepSnake(enemy,false);if(p.dead&&e.dead){end(false,'同归于尽！','你和对手都撞上了障碍。<br>再试一次，争取拿下胜利。','💥');return}if(p.dead){end(false,'挑战失败','对手得分 '+enemyScore+' · 你的得分 '+score+'<br>再来一局，改变战术！','🤖🏆');return}if(e.dead){end(true,'你赢了！','漂亮！你的得分 '+score+'，对手得分 '+enemyScore+'。','🏆🐍');return}
+if(same(player.body[0],enemy.body[0])||same(phead,ehead)){end(false,'正面相撞！','你和对手迎面相撞了。<br>试试提前转向！','💥');return}
+if(score>best){best=score;bestEl.textContent=best;try{localStorage.setItem('snakeBattleBest',best)}catch(e){}}
+}
+function draw(){ctx.clearRect(0,0,W,W);ctx.fillStyle='#0a1222';ctx.fillRect(0,0,W,W);
+for(let y=0;y<N;y++)for(let x=0;x<N;x++){ctx.fillStyle=(x+y)%2?'#0d182a':'#0f1b2e';ctx.fillRect(x*cell,y*cell,cell,cell)}
+// subtle center line
+ctx.strokeStyle='#263653';ctx.lineWidth=1;ctx.strokeRect(.5,.5,W-1,W-1);
+if(food){const cx=food.x*cell+10,cy=food.y*cell+10;ctx.shadowColor='#ffcf5a';ctx.shadowBlur=16;ctx.fillStyle='#ffcf5a';ctx.beginPath();ctx.arc(cx,cy,6,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#fff1b8';ctx.beginPath();ctx.arc(cx-2,cy-2,2,0,Math.PI*2);ctx.fill()}
+function snake(s,color){s.body.forEach((p,i)=>{const pad=i===0?2:3;ctx.fillStyle=color;ctx.globalAlpha=Math.max(.45,1-i*.035);roundRect(p.x*cell+pad,p.y*cell+pad,cell-pad*2,cell-pad*2,i===0?6:5);ctx.fill();if(i===0){ctx.globalAlpha=1;ctx.fillStyle='#08101b';const dx=s.dir.x,dy=s.dir.y;let ex=p.x*cell+10+dx*3,ey=p.y*cell+10+dy*3;if(dx!==0){ctx.beginPath();ctx.arc(ex,ey-4,1.8,0,7);ctx.arc(ex,ey+4,1.8,0,7);ctx.fill()}else{ctx.beginPath();ctx.arc(ex-4,ey,1.8,0,7);ctx.arc(ex+4,ey,1.8,0,7);ctx.fill()}}});ctx.globalAlpha=1}
+snake(player,'#a3ff5f');snake(enemy,'#52e6ff')}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+function loop(now){if(!running)return;if(paused){requestAnimationFrame(loop);return}const baseSpeed=Math.max(78,145-Math.min(score+enemyScore,100)*.35);const speed=(now<boostUntil)?Math.max(55,baseSpeed*.55):baseSpeed;if(now-last>speed){last=now;tick();draw()}if(running)requestAnimationFrame(loop)}
+document.getElementById('boostBtn').addEventListener('click',()=>{if(running&&!paused){boostUntil=performance.now()+3000;document.getElementById('boostBtn').textContent='⚡ 冲刺中…'}}); 
+document.getElementById('shieldBtn').addEventListener('click',()=>{if(running&&!paused){shield=true;document.getElementById('shieldBtn').textContent='🛡 护盾已就绪'}}); 
+startBtn.addEventListener('click',()=>{if(!player)reset();start()});
+document.getElementById('restartBtn').addEventListener('click',()=>{reset();start()});
+pauseBtn.addEventListener('click',()=>{if(!running&&!paused)return;if(!paused){paused=true;pauseBtn.textContent='▶ 继续游戏';show('游戏暂停','休息一下，准备好后继续。','⏸','继续游戏')}else{paused=false;overlay.classList.add('hidden');pauseBtn.textContent='⏸ 暂停游戏';last=performance.now();requestAnimationFrame(loop)}});
+document.querySelectorAll('[data-dir]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();turn(b.dataset.dir)})});
+window.addEventListener('keydown',e=>{const map={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};if(map[e.key]){e.preventDefault();turn(map[e.key])}if(e.key===' '){e.preventDefault();if(!running&&!ended)start();else pauseBtn.click()}});
+canvas.addEventListener('pointerdown',e=>{swipeStart={x:e.clientX,y:e.clientY}});
+canvas.addEventListener('pointerup',e=>{if(!swipeStart)return;const dx=e.clientX-swipeStart.x,dy=e.clientY-swipeStart.y;if(Math.max(Math.abs(dx),Math.abs(dy))>18)turn(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));swipeStart=null});
+reset();
+})();
+</script>
+</body></html>
