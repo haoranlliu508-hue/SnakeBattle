@@ -8,9 +8,119 @@
 <style>
 :root{color-scheme:dark;--bg:#080d18;--panel:#111b2d;--panel2:#17243a;--line:#263a55;--mint:#b8ff67;--cyan:#58e7ff;--pink:#ff6d9c;--gold:#ffd166;--muted:#91a4bf;--white:#f4f8ff}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% -15%,#1b3554 0%,#0b1322 45%,var(--bg) 80%);color:var(--white);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}body{padding:env(safe-area-inset-top) 13px env(safe-area-inset-bottom);display:flex;justify-content:center}.app{width:min(100%,540px);padding:14px 0 22px}.top{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 16px}.brand{display:flex;align-items:center;gap:11px}.logo{width:47px;height:47px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:linear-gradient(145deg,#c8ff7a,#52dca4);box-shadow:0 8px 30px #86ff7926;color:#07111b}.eyebrow{font-size:10px;letter-spacing:2.5px;font-weight:900;color:var(--mint)}h1{font-size:20px;line-height:1.1;margin:4px 0 0;letter-spacing:-.4px}.tag{border:1px solid #3b5d56;background:#a9ff6610;color:var(--mint);font-size:10px;font-weight:800;letter-spacing:1px;border-radius:999px;padding:8px 10px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.stat{position:relative;overflow:hidden;border:1px solid var(--line);background:linear-gradient(145deg,#18263bdf,#101a2bdf);border-radius:16px;padding:11px 12px}.stat:after{content:"";position:absolute;width:44px;height:44px;border-radius:50%;right:-15px;top:-17px;background:var(--glow,#b8ff67);opacity:.09;filter:blur(3px)}.stat small{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.stat strong{font-size:23px;font-weight:850;letter-spacing:-.6px;font-variant-numeric:tabular-nums}.stat:nth-child(2) strong{color:var(--cyan)}.stat:nth-child(3) strong{color:var(--gold)}.arena{position:relative;padding:8px;border:1px solid #314761;border-radius:22px;background:linear-gradient(145deg,#16243a,#0b1424);box-shadow:0 20px 55px #0005, inset 0 1px #ffffff08;overflow:hidden}.arena:before{content:"";position:absolute;inset:0 15% auto;height:1px;background:linear-gradient(90deg,transparent,#b8ff6770,transparent)}.canvas-wrap{position:relative;width:100%;aspect-ratio:1/1}.canvas-wrap canvas{display:block;width:100%;height:100%;border-radius:15px;touch-action:none}.overlay{position:absolute;inset:0;border-radius:15px;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;background:#07101ddf;backdrop-filter:blur(10px);transition:opacity .2s}.overlay.hidden{opacity:0;pointer-events:none}.modal{max-width:300px}.modal .emoji{font-size:46px;filter:drop-shadow(0 0 18px #b8ff6733);margin-bottom:8px}.modal h2{font-size:26px;letter-spacing:-.7px;margin:0 0 8px}.modal p{color:#a8bad1;font-size:13px;line-height:1.65;margin:0 0 17px}.btn{border:0;border-radius:13px;padding:13px 22px;min-height:46px;font-weight:900;font-size:14px;color:#08111c;background:linear-gradient(120deg,#caff78,#69e6a5);box-shadow:0 7px 24px #9cff6326;cursor:pointer}.btn:active{transform:scale(.98)}.arena-foot{display:flex;justify-content:space-between;align-items:center;padding:9px 4px 2px;color:var(--muted);font-size:10px}.legend{display:flex;gap:12px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;box-shadow:0 0 8px currentColor}.status{color:var(--mint);font-weight:800;letter-spacing:.4px}.toolbar{display:flex;gap:7px;margin:12px 0 10px}.tool{flex:1;border:1px solid var(--line);background:#152238;color:#dce8f7;border-radius:12px;min-height:40px;font-size:11px;font-weight:800}.tool.active{border-color:#547b43;color:var(--mint);background:#b8ff6710}.settings{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{border:1px solid var(--line);background:linear-gradient(145deg,#152239e8,#101a2b);border-radius:17px;padding:12px}.card-title{display:flex;align-items:center;justify-content:space-between;color:#a7b8cf;font-size:11px;font-weight:800;margin:0 0 10px}.dpad{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,42px);gap:6px;max-width:210px;margin:auto}.dir{border:1px solid #304763;background:linear-gradient(145deg,#20324d,#16243a);color:#f6faff;border-radius:12px;font-size:18px;font-weight:900;touch-action:manipulation;box-shadow:inset 0 1px #ffffff08}.dir:active{background:#344d6b;transform:scale(.96)}.dir.up{grid-column:2;grid-row:1}.dir.left{grid-column:1;grid-row:2}.dir.down{grid-column:2;grid-row:2}.dir.right{grid-column:3;grid-row:2}.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.action{min-height:40px;border-radius:11px;border:1px solid #304763;background:#192941;color:#eaf2ff;font-size:11px;font-weight:800;padding:7px 4px}.action.primary{border-color:#557c42;color:var(--mint);background:#b8ff6710}.action.cyan{border-color:#2e6472;color:var(--cyan);background:#58e7ff0c}.action.gold{border-color:#77633b;color:var(--gold);background:#ffd1660d}.action:active{transform:scale(.98)}.bottomrow{display:flex;gap:8px;margin-top:10px}.bottomrow .card{flex:1;min-width:0}.mode-select{width:100%;background:#0d1727;border:1px solid #30445f;border-radius:10px;color:#e8f0fc;padding:10px;font-size:12px;font-weight:700}.mission{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:10px;margin:8px 1px 0}.mission b{color:var(--gold)}.meter{height:5px;border-radius:9px;background:#25354b;overflow:hidden;margin-top:7px}.meter span{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--mint),var(--cyan));border-radius:9px;transition:width .15s}.help{text-align:center;color:#7589a4;font-size:10px;line-height:1.65;margin:13px 6px 0}.footer{text-align:center;color:#536984;font-size:9px;letter-spacing:2px;margin-top:15px}.toast{position:absolute;top:14px;left:50%;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:#15263b;border:1px solid #49637c;border-radius:999px;padding:8px 13px;font-size:11px;font-weight:900;white-space:nowrap;transition:.2s;z-index:2}.toast.show{opacity:1;transform:translate(-50%,0)}@media(max-width:370px){.settings{grid-template-columns:1fr}.dpad{grid-template-rows:repeat(2,38px)}.stat{padding:9px}.stat strong{font-size:20px}.tag{font-size:9px;padding:7px}.actions{grid-template-columns:repeat(2,1fr)}}@media(min-width:430px){.app{padding-top:20px}.canvas-wrap{aspect-ratio:1/1}}
+
+/* Landscape full-screen battle controls */
+#mobileControls{display:none}
+@media (orientation:landscape) and (max-height:600px){
+ html,body{width:100%;height:100%;min-height:100%;overflow:hidden}
+ body{padding:0;display:block}
+ .app{width:100%;max-width:none;height:100dvh;min-height:0;padding:7px 10px 5px;display:flex;flex-direction:column;gap:5px}
+ .top{margin:0 5px 0;min-height:34px;flex-shrink:0}
+ .logo{width:32px;height:32px;border-radius:10px;font-size:18px}
+ .eyebrow{font-size:8px;letter-spacing:1.5px}
+ h1{font-size:15px;margin-top:2px}
+ .tag{font-size:8px;padding:5px 8px}
+ .stats{position:absolute;z-index:4;top:8px;left:50%;transform:translateX(-50%);width:min(42vw,360px);gap:5px;margin:0}
+ .stat{border-radius:10px;padding:5px 8px;background:#101b2bdc;backdrop-filter:blur(8px)}
+ .stat small{font-size:7px;margin-bottom:1px}
+ .stat strong{font-size:16px}
+ .arena{flex:1;min-height:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible;display:flex;align-items:center;justify-content:center}
+ .arena:before,.arena-foot,.toolbar,.settings,.bottomrow,.help,.footer{display:none!important}
+ .canvas-wrap{width:min(100%,calc(100dvh - 58px));height:100%;aspect-ratio:1/1;margin:0 auto;flex:0 0 auto}
+ .canvas-wrap canvas{border:1px solid #2c4761;border-radius:12px;box-shadow:0 0 30px #0008}
+ #overlay{border-radius:12px}
+ #mobileControls{display:block;position:fixed;inset:0;z-index:8;pointer-events:none}
+ .joystick-zone{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));width:clamp(112px,22vh,158px);height:clamp(112px,22vh,158px);pointer-events:auto;touch-action:none;user-select:none}
+ .joy-base{position:absolute;inset:0;border-radius:50%;border:1px solid #a8c8e64a;background:radial-gradient(circle,#172d45c9,#0a1525b8);box-shadow:inset 0 0 22px #0007,0 0 22px #0005}
+ .joy-base:before,.joy-base:after{content:"";position:absolute;background:#c6e2ff25}
+ .joy-base:before{width:1px;top:12%;bottom:12%;left:50%}
+ .joy-base:after{height:1px;left:12%;right:12%;top:50%}
+ .joy-knob{position:absolute;width:42%;height:42%;left:29%;top:29%;border-radius:50%;border:1px solid #b8ff67a8;background:linear-gradient(145deg,#caff78dd,#54dba8dd);box-shadow:0 0 22px #9cff6350,inset 0 2px 3px #ffffff88;transform:translate(0,0);pointer-events:none}
+ .joy-label{position:absolute;left:0;right:0;bottom:-17px;text-align:center;font-size:8px;letter-spacing:1.5px;color:#b5c9e4b0;font-weight:900}
+ .skill-zone{position:absolute;right:max(18px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));display:flex;align-items:flex-end;gap:10px;pointer-events:auto}
+ .skill-stack{display:flex;flex-direction:column;gap:9px;align-items:center}
+ .skill-orb{width:clamp(48px,10vh,64px);height:clamp(48px,10vh,64px);border-radius:50%;border:1px solid #58e7ff99;background:linear-gradient(145deg,#1b3b50ed,#111c30ed);color:#e9f8ff;font-size:20px;display:grid;place-items:center;box-shadow:0 0 20px #58e7ff20,inset 0 1px #ffffff24;touch-action:manipulation}
+ .skill-orb small{font-size:8px;font-weight:900;margin-top:-7px;letter-spacing:.2px}
+ .skill-orb.boost{border-color:#b8ff67a8;color:#d8ff9c}
+ .skill-orb.shield{border-color:#58e7ff99;color:#8ff1ff}
+ .skill-orb:active{transform:scale(.94);filter:brightness(1.25)}
+ .skill-orb:disabled{opacity:.38;filter:grayscale(.8)}
+ .utility-stack{display:flex;flex-direction:column;gap:8px;margin-bottom:3px}
+ .utility-orb{width:36px;height:36px;border-radius:50%;border:1px solid #7088a4a0;background:#101d30dd;color:#e5eefb;font-size:14px}
+}
+@media (orientation:landscape) and (max-height:400px){
+ .app{padding-top:3px;gap:2px}
+ .top{min-height:28px}
+ .logo{width:27px;height:27px}
+ .stats{top:4px}
+ .stat{padding:3px 6px}
+ .stat strong{font-size:13px}
+ .joystick-zone{width:100px;height:100px;bottom:10px}
+ .skill-zone{bottom:10px;gap:6px}
+ .skill-orb{width:44px;height:44px;font-size:17px}
+ .utility-orb{width:30px;height:30px}
+}
+
+
+/* Main menu, pause menu and field item refresh */
+#mainMenu,#pauseMenu{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 35%,#1b3554ed,#060b14f7 72%);backdrop-filter:blur(16px)}
+#mainMenu.hidden,#pauseMenu.hidden{display:none}
+.menu-panel{width:min(440px,88vw);text-align:center;border:1px solid #45617c88;border-radius:28px;padding:clamp(22px,5vh,42px) clamp(20px,5vw,38px);background:linear-gradient(145deg,#14253aee,#0b1424f5);box-shadow:0 30px 100px #0009,inset 0 1px #ffffff16}
+.menu-mark{font-size:clamp(34px,8vh,58px);filter:drop-shadow(0 0 24px #a8ff6b66);margin-bottom:6px}
+.menu-kicker{font-size:10px;font-weight:900;letter-spacing:4px;color:#b8ff67}
+.menu-panel h2{font-size:clamp(25px,5vh,38px);margin:8px 0 7px;letter-spacing:-1px}
+.menu-sub{font-size:12px;color:#9db1ca;margin:0 0 23px;line-height:1.6}
+.menu-actions{display:flex;flex-direction:column;gap:10px}
+.menu-actions button{width:100%;min-height:48px;border-radius:15px;font-weight:900;font-size:14px}
+.menu-actions .secondary{border:1px solid #38516c;background:#172941;color:#eaf3ff}
+.menu-actions .danger{border:1px solid #704052;background:#291a2a;color:#ffc3d0}
+#settingsCorner{position:fixed;right:max(14px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:12;width:42px;height:42px;border-radius:14px;border:1px solid #64809caa;background:#101d30e8;color:#f4f8ff;font-size:19px;box-shadow:0 5px 18px #0007;display:none}
+#itemRefresh{position:fixed;right:max(14px,env(safe-area-inset-right));top:max(62px,calc(env(safe-area-inset-top) + 60px));z-index:12;border:1px solid #ffd16699;border-radius:14px;background:#382c1de8;color:#ffe3a0;padding:10px 12px;font-weight:900;font-size:11px;display:none}
+body.in-game #settingsCorner,body.in-game #itemRefresh{display:block}
+body.in-game #settingsCorner{top:max(12px,env(safe-area-inset-top))}
+body.in-game #itemRefresh{top:max(60px,calc(env(safe-area-inset-top) + 58px))}
+@media (orientation:landscape) and (max-height:600px){
+ #mainMenu,#pauseMenu{padding:10px}
+ .menu-panel{width:min(440px,66vw);padding:14px 24px;border-radius:22px}
+ .menu-mark{font-size:32px;margin:0}
+ .menu-panel h2{font-size:25px;margin:3px 0}
+ .menu-sub{margin:0 0 10px;font-size:10px}
+ .menu-actions{gap:7px}
+ .menu-actions button{min-height:39px;font-size:12px}
+ #settingsCorner{width:36px;height:36px;right:12px;top:10px}
+ #itemRefresh{right:12px;top:54px;padding:8px 9px}
+}
+
 </style>
 </head>
 <body>
+
+<div id="mainMenu">
+ <div class="menu-panel">
+  <div class="menu-mark">🐍⚡</div><div class="menu-kicker">SNAKE BATTLE · PRO</div>
+  <h2>霓虹竞技场</h2><p class="menu-sub">准备好了吗？进入战场，收集随机道具，挑战 AI 蛇王。</p>
+  <div class="menu-actions">
+   <button class="btn" id="menuStart">▶ 开始游戏</button>
+   <button class="secondary" id="menuContinue">▣ 保留存档 / 继续游戏</button>
+   <button class="danger" id="menuExit">✕ 退出游戏</button>
+  </div>
+ </div>
+</div>
+<div id="pauseMenu" class="hidden">
+ <div class="menu-panel">
+  <div class="menu-mark">Ⅱ</div><div class="menu-kicker">TACTICAL PAUSE</div>
+  <h2>游戏已暂停</h2><p class="menu-sub">调整策略，保存进度，准备好后再继续。</p>
+  <div class="menu-actions">
+   <button class="btn" id="menuResume">▶ 继续游戏</button>
+   <button class="secondary" id="menuSave">▣ 存档</button>
+   <button class="danger" id="menuPauseExit">⌂ 退出到主菜单</button>
+  </div>
+  <p id="saveNotice" class="menu-sub" style="margin:10px 0 0"></p>
+ </div>
+</div>
+<button id="settingsCorner" aria-label="设置 / 暂停">⚙</button>
+<button id="itemRefresh" aria-label="刷新随机道具">✦ 刷新道具</button>
+
 <main class="app">
 <header class="top"><div class="brand"><div class="logo">🐍</div><div><div class="eyebrow">NEON ARCADE · SEASON 01</div><h1>蛇蛇对决 <span style="color:var(--mint)">PRO</span></h1></div></div><div class="tag">✦ 竞技场</div></header>
 <section class="stats">
@@ -29,6 +139,25 @@
 <div class="bottomrow"><div class="card"><div class="card-title"><span>连击热度</span><span id="comboLabel">×1.0</span></div><div class="meter"><span id="comboMeter"></span></div><div class="mission"><span>连续吃到能量核心可叠加</span><b id="comboPts">0 / 3</b></div></div><div class="card"><div class="card-title"><span>强化道具</span><span>DROP</span></div><div style="font-size:11px;color:#a9bbd2;line-height:1.6">🟡 金核 +30分　🔵 冰晶减速对手<br>🟣 星核 +连击　🛡 护盾可挡一次碰撞</div></div></div>
 <p class="help">滑动棋盘或点击方向键控制 · 电脑端支持方向键 / WASD · 空格暂停<br>避开墙壁、自己的身体和 AI。每吃 5 个核心升级，速度逐渐提升。</p>
 <div class="footer">SNAKE BATTLE PRO · BUILT FOR THE ARENA</div>
+
+<div id="mobileControls" aria-label="横屏游戏控制">
+ <div class="joystick-zone" id="joystick" aria-label="虚拟摇杆">
+  <div class="joy-base"></div><div class="joy-knob" id="joyKnob"></div><div class="joy-label">MOVE · 移动</div>
+ </div>
+ <div class="skill-zone">
+  <div class="utility-stack">
+   <button class="utility-orb" id="landPause" aria-label="暂停">Ⅱ</button>
+   <button class="utility-orb" id="landRestart" aria-label="重开">↻</button>
+  </div>
+  <div class="skill-stack">
+   <button class="skill-orb boost" id="landBoost" aria-label="闪电冲刺">⚡<small>冲刺</small></button>
+  </div>
+  <div class="skill-stack">
+   <button class="skill-orb shield" id="landShield" aria-label="能量护盾">🛡<small>护盾</small></button>
+  </div>
+ </div>
+</div>
+
 </main>
 <script>
 (()=>{'use strict';
@@ -67,7 +196,7 @@ function loop(now){if(!running)return;if(paused){raf=requestAnimationFrame(loop)
 $('boostBtn').addEventListener('click',()=>{if(!running||paused||boostUntil>0)return;boostUntil=performance.now()+3000;$('boostBtn').textContent='⚡ 冲刺中';$('skillHint').textContent='闪电冲刺已激活 · 3 秒';play(760,.12);setTimeout(()=>{if(boostUntil&&performance.now()>=boostUntil)$('boostBtn').textContent='⚡ 冲刺已用'},3100)});
 $('shieldBtn').addEventListener('click',()=>{if(!running||paused||shield)return;shield=true;$('shieldBtn').textContent='🛡 护盾就绪';$('skillHint').textContent='护盾已激活，可抵消一次碰撞';play(620,.12)});
 startBtn.addEventListener('click',()=>{if(!player)reset();start()});$('restartBtn').addEventListener('click',()=>{reset();start()});
-$('pauseBtn').addEventListener('click',()=>{if(!running&&!paused)return;if(!paused){paused=true;statusEl.textContent='Ⅱ PAUSED';$('pauseBtn').textContent='▶ 继续';show('战术暂停','深呼吸，观察局势。<br>准备好后继续你的对决。','⏸','继续比赛')}else{paused=false;overlay.classList.add('hidden');statusEl.textContent='● LIVE';$('pauseBtn').textContent='Ⅱ 暂停';last=performance.now();loop.prev=performance.now();raf=requestAnimationFrame(loop)}});
+$('pauseBtn').addEventListener('click',openPauseMenu);
 document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();turn(b.dataset.dir)}));
 window.addEventListener('keydown',e=>{let map={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};if(map[e.key]){e.preventDefault();turn(map[e.key])}if(e.key===' '){e.preventDefault();if(!running&&!ended)start();else $('pauseBtn').click()}if(e.key==='r'||e.key==='R'){$('restartBtn').click()}});
 canvas.addEventListener('pointerdown',e=>swipe={x:e.clientX,y:e.clientY});canvas.addEventListener('pointerup',e=>{if(!swipe)return;let dx=e.clientX-swipe.x,dy=e.clientY-swipe.y;if(Math.max(Math.abs(dx),Math.abs(dy))>18)turn(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));swipe=null});
@@ -75,6 +204,88 @@ $('soundBtn').addEventListener('click',()=>{sound=!sound;$('soundBtn').textConte
 $('difficultyBtn').addEventListener('click',()=>{difficulty=(difficulty+1)%3;let labels=['⚔️ 难度：休闲','⚔️ 难度：标准','⚔️ 难度：硬核'];$('difficultyBtn').textContent=labels[difficulty];toastMsg(['放松玩一局','标准竞技','AI 反应更快！'][difficulty]);if(difficulty===2)play(740,.1)});
 $('modeBtn').addEventListener('click',()=>show('竞技场规则','🍎 普通核心：+10 分<br>🟡 金核：+30 分<br>🔵 冰晶：减速 AI 3 秒<br>🟣 星核：强化连击<br>⚡ 冲刺 3 秒，每局一次<br>🛡 护盾抵消一次碰撞','✦','知道了'));
 reset();
+
+// Landscape virtual joystick: drag to steer in four cardinal directions.
+const joy=$('joystick'),joyKnob=$('joyKnob');let joyPointer=null,joyRect=null;
+function joyMove(e){
+ if(joyPointer!==e.pointerId)return;
+ const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ let dx=e.clientX-cx,dy=e.clientY-cy,dist=Math.hypot(dx,dy),max=r.width*.29;
+ if(dist>max){dx=dx/dist*max;dy=dy/dist*max}
+ joyKnob.style.transform=`translate(${dx}px,${dy}px)`;
+ if(Math.hypot(e.clientX-cx,e.clientY-cy)>r.width*.13){
+  turn(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));
+ }
+}
+joy.addEventListener('pointerdown',e=>{e.preventDefault();joyPointer=e.pointerId;try{joy.setPointerCapture(e.pointerId)}catch(_){}joyMove(e)});
+joy.addEventListener('pointermove',e=>{if(joyPointer!==null){e.preventDefault();joyMove(e)}});
+function joyEnd(e){if(joyPointer===e.pointerId){joyPointer=null;joyKnob.style.transform='translate(0,0)'}}
+joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);joy.addEventListener('lostpointercapture',()=>{joyPointer=null;joyKnob.style.transform='translate(0,0)'});
+$('landBoost').addEventListener('click',()=>$('boostBtn').click());
+$('landShield').addEventListener('click',()=>$('shieldBtn').click());
+$('landPause').addEventListener('click',()=>$('pauseBtn').click());
+$('landRestart').addEventListener('click',()=>$('restartBtn').click());
+
+
+// Main menu / pause menu / save slot / random item refresh.
+function openMainMenu(){
+ running=false;paused=false;cancelAnimationFrame(raf);
+ $('pauseMenu').classList.add('hidden');$('mainMenu').classList.remove('hidden');
+ document.body.classList.remove('in-game');
+}
+function openPauseMenu(){
+ if(!running&&!paused)return;
+ paused=true;statusEl.textContent='Ⅱ PAUSED';$('pauseBtn').textContent='▶ 继续';
+ $('mainMenu').classList.add('hidden');$('pauseMenu').classList.remove('hidden');
+}
+function resumeGame(){
+ $('pauseMenu').classList.add('hidden');$('mainMenu').classList.add('hidden');
+ document.body.classList.add('in-game');running=true;paused=false;ended=false;
+ statusEl.textContent='● LIVE';$('pauseBtn').textContent='Ⅱ 暂停';
+ overlay.classList.add('hidden');last=performance.now();loop.prev=performance.now();raf=requestAnimationFrame(loop);
+}
+function saveGame(){
+ try{
+  const snap={version:1,score,enemyScore,best,combo,comboUntil:Math.max(0,comboUntil-performance.now()),level,foodCount,shield,boostUsed:boostUntil>0,slowRemaining:Math.max(0,slowUntil-performance.now()),difficulty,sound,player,enemy,food,obstacles};
+  localStorage.setItem('snakeBattleSave',JSON.stringify(snap));
+  $('saveNotice').textContent='✓ 存档成功！可以从主菜单继续游戏。';
+  toastMsg('进度已保存');play(580,.08);
+ }catch(e){$('saveNotice').textContent='存档失败：设备存储不可用。'}
+}
+function loadGame(){
+ try{
+  const raw=localStorage.getItem('snakeBattleSave');if(!raw){$('saveNotice').textContent='暂无存档，先开始一局并在暂停菜单存档。';return false}
+  const s=JSON.parse(raw);if(!s||s.version!==1||!s.player||!s.enemy||!s.food)throw Error('bad save');
+  cancelAnimationFrame(raf);score=s.score||0;enemyScore=s.enemyScore||0;best=s.best||best;combo=s.combo||0;comboUntil=performance.now()+(s.comboUntil||0);level=s.level||1;foodCount=s.foodCount||0;shield=!!s.shield;boostUntil=s.boostUsed?1:0;slowUntil=performance.now()+(s.slowRemaining||0);difficulty=s.difficulty??1;sound=s.sound!==false;
+  player=s.player;enemy=s.enemy;food=s.food;obstacles=s.obstacles||[];particles=[];running=false;paused=false;ended=false;
+  scoreEl.textContent=score;enemyScoreEl.textContent=enemyScore;bestEl.textContent=best;$('level').textContent='LV.'+level;$('soundBtn').textContent=sound?'🔊 音效开启':'🔇 音效关闭';
+  $('difficultyBtn').textContent=['⚔️ 难度：休闲','⚔️ 难度：标准','⚔️ 难度：硬核'][difficulty]||'⚔️ 难度：标准';
+  $('boostBtn').textContent=s.boostUsed?'⚡ 冲刺已用':'⚡ 闪电冲刺';$('shieldBtn').textContent=shield?'🛡 护盾就绪':'🛡 能量护盾';$('skillHint').textContent='已恢复存档进度';
+  draw();return true;
+ }catch(e){$('saveNotice').textContent='存档无法读取，请开始新游戏。';return false}
+}
+$('menuStart').addEventListener('click',()=>{reset();$('mainMenu').classList.add('hidden');document.body.classList.add('in-game');start()});
+$('menuContinue').addEventListener('click',()=>{if(loadGame()){resumeGame()}else{$('menuContinue').textContent='▣ 暂无存档 · 先开始游戏';setTimeout(()=>$('menuContinue').textContent='▣ 保留存档 / 继续游戏',1800)}});
+$('menuExit').addEventListener('click',()=>{openExitPrompt()});
+$('menuResume').addEventListener('click',resumeGame);
+$('menuSave').addEventListener('click',saveGame);
+$('menuPauseExit').addEventListener('click',()=>{saveGame();openMainMenu()});
+$('settingsCorner').addEventListener('click',openPauseMenu);
+$('itemRefresh').addEventListener('click',()=>{
+ if(!running||paused)return;
+ placeFood();emit(food.x,food.y,food.type==='gold'?'#ffd166':food.type==='ice'?'#58e7ff':food.type==='star'?'#d6a2ff':'#ff708e',15);
+ toastMsg(({normal:'普通核心刷新',gold:'金色加分核心刷新',ice:'冰晶减速道具刷新',star:'星核连击道具刷新'})[food.type]||'随机道具已刷新');
+ play(640,.07);draw();
+});
+function openExitPrompt(){
+ // Browsers do not permit an embedded page to force-close its Android host; return to a safe exit screen.
+ $('mainMenu').classList.remove('hidden');
+ $('menuStart').textContent='▶ 返回游戏主菜单';
+ $('menuContinue').textContent='▣ 继续上次存档';
+ $('menuExit').textContent='✓ 已返回主菜单';
+ $('menuExit').disabled=true;
+}
+
 })();
 </script>
 </body></html>
