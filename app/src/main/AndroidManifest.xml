@@ -1,6 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:theme="@style/AppTheme" android:label="贪吃蛇大战" android:usesCleartextTraffic="false" android:hardwareAccelerated="true">
-        <activity android:name=".MainActivity" android:screenOrientation="landscape" android:exported="true">
+
+    <!-- 联机对战需要网络；原版无此权限，仅新增这一项 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application android:theme="@style/AppTheme"
+        android:label="贪吃蛇大战"
+        android:usesCleartextTraffic="true"
+        android:hardwareAccelerated="true">
+        <activity android:name=".MainActivity"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

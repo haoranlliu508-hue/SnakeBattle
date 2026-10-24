@@ -91,6 +91,42 @@ body.in-game #itemRefresh{top:max(60px,calc(env(safe-area-inset-top) + 58px))}
  #itemRefresh{right:12px;top:54px;padding:8px 9px}
 }
 
+/* === 联机对战（仅新增）=== */
+#netPanel{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:14px;background:radial-gradient(ellipse at 50% 35%,#1b3554ed,#060b14f7 72%);backdrop-filter:blur(16px)}
+#netPanel.hidden{display:none}
+.net-code{display:flex;gap:8px;justify-content:center;margin:2px 0 12px}
+.net-code span{width:46px;height:54px;border-radius:12px;border:1px solid #35506e;background:#0a1421;display:grid;place-items:center;font-size:25px;font-weight:900;color:#b8ff67}
+.net-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:262px;margin:0 auto}
+.net-keys button{min-height:40px;border-radius:11px;border:1px solid #2f465f;background:#132135;color:#eaf3ff;font-size:16px;font-weight:900}
+.net-keys button:active{background:#1d3251;transform:scale(.97)}
+.net-keys button.fn{font-size:12px;color:#9fb4cd}
+.net-srv{display:flex;gap:6px;max-width:330px;margin:10px auto 0}
+.net-srv input{flex:1;min-width:0;background:#0a1421;border:1px solid #2b4159;border-radius:10px;color:#dbe9fb;padding:8px 10px;font-size:10px;font-family:ui-monospace,monospace}
+@media (orientation:landscape) and (max-height:600px){
+ #netPanel{padding:8px}
+ .net-code span{width:40px;height:46px;font-size:21px}
+ .net-keys button{min-height:34px;font-size:14px}
+}
+
+/* === 全屏自适应（新增）=== */
+#game{display:block;width:100%!important;height:100%!important}
+@media (orientation:landscape) and (max-height:600px){
+ html,body{width:100%;height:100%;min-height:100%;overflow:hidden}
+ body{padding:0!important;display:block}
+ .app{width:100%!important;max-width:none!important;height:100dvh!important;padding:0!important;display:block!important}
+ .top{display:none!important}
+ .arena{position:fixed!important;inset:0!important;padding:0!important;border:0!important;border-radius:0!important;
+        background:transparent!important;box-shadow:none!important;overflow:hidden!important;display:block!important}
+ .canvas-wrap{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+              aspect-ratio:auto!important;margin:0!important;flex:none!important}
+ .canvas-wrap canvas{border:0!important;border-radius:0!important;box-shadow:none!important}
+ #overlay{border-radius:0!important}
+ .stats{top:max(6px,env(safe-area-inset-top))!important}
+ #settingsCorner{top:max(6px,env(safe-area-inset-top))!important}
+ #itemRefresh{top:max(54px,calc(env(safe-area-inset-top) + 50px))!important}
+ .joystick-zone{bottom:max(10px,env(safe-area-inset-bottom))!important}
+ .skill-zone{bottom:max(10px,env(safe-area-inset-bottom))!important}
+}
 </style>
 </head>
 <body>
@@ -101,9 +137,24 @@ body.in-game #itemRefresh{top:max(60px,calc(env(safe-area-inset-top) + 58px))}
   <h2>霓虹竞技场</h2><p class="menu-sub">准备好了吗？进入战场，收集随机道具，挑战 AI 蛇王。</p>
   <div class="menu-actions">
    <button class="btn" id="menuStart">▶ 开始游戏</button>
+   <button class="secondary" id="menuOnline">🌐 联机对战 · 双人</button>
    <button class="secondary" id="menuContinue">▣ 保留存档 / 继续游戏</button>
    <button class="danger" id="menuExit">✕ 退出游戏</button>
   </div>
+ </div>
+</div>
+<div id="netPanel" class="hidden">
+ <div class="menu-panel">
+  <div class="menu-mark">🌐</div><div class="menu-kicker">ONLINE · 4 DIGITS</div>
+  <h2>联机对战</h2><p class="menu-sub">两台手机输入<b style="color:#b8ff67">同一个 4 位数字</b>，先进房的先等，后进房的自动开局。</p>
+  <div id="netCode" class="net-code"><span>·</span><span>·</span><span>·</span><span>·</span></div>
+  <div id="netKeys" class="net-keys"></div>
+  <div class="menu-actions" style="margin-top:10px">
+   <button class="btn" id="netJoin">进入房间</button>
+   <button class="secondary" id="netBack">← 返回</button>
+  </div>
+  <div class="net-srv"><input id="netSrv" spellcheck="false" placeholder="ws://服务器:端口"></div>
+  <p id="netStatus" class="menu-sub" style="margin:10px 0 0;min-height:16px"></p>
  </div>
 </div>
 <div id="pauseMenu" class="hidden">
@@ -163,38 +214,67 @@ body.in-game #itemRefresh{top:max(60px,calc(env(safe-area-inset-top) + 58px))}
 (()=>{'use strict';
 const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d'),overlay=$('overlay'),startBtn=$('startBtn');
 const scoreEl=$('score'),enemyScoreEl=$('enemyScore'),bestEl=$('best'),statusEl=$('status'),toast=$('toast');
-const N=21,CELL=20,W=420,dirs={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
-let player,enemy,food,score=0,enemyScore=0,best=0,running=false,paused=false,ended=false,last=0,swipe=null,boostUntil=0,shield=false,combo=0,comboUntil=0,level=1,difficulty=1,sound=true,particles=[],slowUntil=0,raf=0,foodCount=0;
+let COLS=21,ROWS=21,CW=20,CH=20,W=420,H=420;const dirs={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+let player,enemy,food=[],score=0,enemyScore=0,best=0,running=false,paused=false,ended=false,last=0,swipe=null,boostUntil=0,shield=false,combo=0,comboUntil=0,level=1,difficulty=1,sound=true,particles=[],slowUntil=0,raf=0,foodCount=0;
 try{best=+(localStorage.getItem('snakeBattleBest')||0)}catch(e){}bestEl.textContent=best;
-function same(a,b){return a.x===b.x&&a.y===b.y}function rnd(n=N){return Math.floor(Math.random()*n)}
-function occupied(p){return player?.body.some(s=>same(s,p))||enemy?.body.some(s=>same(s,p))||obstacles.some(s=>same(s,p))}
+function same(a,b){return a.x===b.x&&a.y===b.y}function rnd(n=COLS){return Math.floor(Math.random()*n)}
+function occupied(p){return player?.body.some(s=>same(s,p))||enemy?.body.some(s=>same(s,p))||obstacles.some(s=>same(s,p))||food?.some(f=>same(f,p))}
 let obstacles=[];
-function placeFree(){let cells=[];for(let y=1;y<N-1;y++)for(let x=1;x<N-1;x++){let p={x,y};if(!occupied(p))cells.push(p)}return cells.length?cells[rnd(cells.length)]:{x:10,y:10}}
-function placeFood(){food=placeFree();const roll=Math.random();food.type=roll<.12?'gold':roll<.24?'ice':roll<.34?'star':'normal'}
-function reset(){cancelAnimationFrame(raf);score=0;enemyScore=0;combo=0;comboUntil=0;level=1;foodCount=0;boostUntil=0;shield=false;slowUntil=0;particles=[];obstacles=[];player={body:[{x:4,y:10},{x:3,y:10},{x:2,y:10}],dir:dirs.right,next:dirs.right};enemy={body:[{x:16,y:10},{x:17,y:10},{x:18,y:10}],dir:dirs.left,next:dirs.left};scoreEl.textContent='0';enemyScoreEl.textContent='0';$('boostBtn').textContent='⚡ 闪电冲刺';$('shieldBtn').textContent='🛡 能量护盾';$('skillHint').textContent='冲刺与护盾每局各可用 1 次';$('level').textContent='LV.1';$('levelMeter').style.width='0%';$('comboMeter').style.width='0%';$('comboLabel').textContent='×1.0';$('comboPts').textContent='0 / 3';placeFood();running=false;paused=false;ended=false;statusEl.textContent='● READY';$('pauseBtn').textContent='Ⅱ 暂停';draw()}
+function placeFree(){let cells=[];for(let y=1;y<ROWS-1;y++)for(let x=1;x<COLS-1;x++){let p={x,y};if(!occupied(p))cells.push(p)}return cells.length?cells[rnd(cells.length)]:{x:Math.floor(COLS/2),y:Math.floor(ROWS/2)}}
+function foodTarget(){return Math.max(1,Math.min(9,Math.round(COLS*ROWS/440)))}
+function mkFood(){let f=placeFree();const roll=Math.random();f.type=roll<.12?'gold':roll<.24?'ice':roll<.34?'star':'normal';return f}
+function placeFood(){food=mkFood();fillFood()}
+function fillFood(){if(!Array.isArray(food))food=[];let n=foodTarget();while(food.length<n)food.push(mkFood())}
+function reset(){fitGrid();let _my=Math.floor(ROWS/2);cancelAnimationFrame(raf);score=0;enemyScore=0;combo=0;comboUntil=0;level=1;foodCount=0;boostUntil=0;shield=false;slowUntil=0;particles=[];obstacles=[];player={body:[{x:3,y:_my},{x:2,y:_my},{x:1,y:_my}],dir:dirs.right,next:dirs.right};enemy={body:[{x:COLS-4,y:_my},{x:COLS-3,y:_my},{x:COLS-2,y:_my}],dir:dirs.left,next:dirs.left};food=[];scoreEl.textContent='0';enemyScoreEl.textContent='0';$('boostBtn').textContent='⚡ 闪电冲刺';$('shieldBtn').textContent='🛡 能量护盾';$('skillHint').textContent='冲刺与护盾每局各可用 1 次';$('level').textContent='LV.1';$('levelMeter').style.width='0%';$('comboMeter').style.width='0%';$('comboLabel').textContent='×1.0';$('comboPts').textContent='0 / 3';placeFood();running=false;paused=false;ended=false;statusEl.textContent='● READY';$('pauseBtn').textContent='Ⅱ 暂停';draw()}
 function show(title,text,emoji='🐍⚡🐍',button='再来一局'){ $('modalTitle').textContent=title;$('modalText').innerHTML=text;$('modalEmoji').textContent=emoji;startBtn.textContent=button;overlay.classList.remove('hidden')}
 function start(){if(ended)reset();running=true;paused=false;ended=false;overlay.classList.add('hidden');statusEl.textContent='● LIVE';$('pauseBtn').textContent='Ⅱ 暂停';last=performance.now();raf=requestAnimationFrame(loop)}
-function end(won,title,text,emoji){running=false;ended=true;statusEl.textContent=won?'● VICTORY':'● GAME OVER';play(won?660:140,.18);show(title,text,emoji,'再战一局')}
-function turn(name){if(!running||paused||!name)return;let d=dirs[name];if(d.x===-player.dir.x&&d.y===-player.dir.y)return;player.next=d}
-function aiTurn(){let h=enemy.body[0],opts=Object.values(dirs).filter(d=>!(d.x===-enemy.dir.x&&d.y===-enemy.dir.y));let target=food;opts.sort((a,b)=>heuristic(h,a,target)-heuristic(h,b,target)+(Math.random()-.5)*(difficulty===2?.25:1.2));for(let d of opts){let p={x:h.x+d.x,y:h.y+d.y};if(p.x<0||p.x>=N||p.y<0||p.y>=N)continue;if(enemy.body.slice(0,-1).some(s=>same(s,p))||player.body.slice(0,-1).some(s=>same(s,p))||obstacles.some(s=>same(s,p)))continue;enemy.next=d;return}enemy.next=opts[0]||enemy.dir}
-function heuristic(h,d,t){let x=h.x+d.x,y=h.y+d.y;let danger=(x<1||x>N-2||y<1||y>N-2)?5:0;let p={x,y};if(enemy.body.slice(0,-1).some(s=>same(s,p))||player.body.slice(0,-1).some(s=>same(s,p))||obstacles.some(s=>same(s,p)))danger+=8;return Math.abs(x-t.x)+Math.abs(y-t.y)+danger}
-function emit(x,y,color,n=12){for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2,v=20+Math.random()*85;particles.push({x:x*CELL+10,y:y*CELL+10,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.45+Math.random()*.45,max:.9,color,size:1.5+Math.random()*3})}}
+function end(won,title,text,emoji){if(net)netWin=(won?'host':(/出局|对撞/.test(title)?'draw':'guest'));running=false;ended=true;statusEl.textContent=won?'● VICTORY':'● GAME OVER';play(won?660:140,.18);show(title,text,emoji,'再战一局')}
+function turn(name){if(!running||paused||!name)return;let d=dirs[name];if(d.x===-player.dir.x&&d.y===-player.dir.y)return;player.next=d;if(net&&net.role==='guest'&&net.ws&&net.ws.readyState===1)net.ws.send(JSON.stringify({t:'i',d:name}))}
+function aiTurn(){let h=enemy.body[0],opts=Object.values(dirs).filter(d=>!(d.x===-enemy.dir.x&&d.y===-enemy.dir.y));let target=food.length?food.reduce((a,f)=>(Math.abs(f.x-h.x)+Math.abs(f.y-h.y)<Math.abs(a.x-h.x)+Math.abs(a.y-h.y))?f:a):{x:h.x,y:h.y};opts.sort((a,b)=>heuristic(h,a,target)-heuristic(h,b,target)+(Math.random()-.5)*(difficulty===2?.25:1.2));for(let d of opts){let p={x:h.x+d.x,y:h.y+d.y};if(p.x<0||p.x>=COLS||p.y<0||p.y>=ROWS)continue;if(enemy.body.slice(0,-1).some(s=>same(s,p))||player.body.slice(0,-1).some(s=>same(s,p))||obstacles.some(s=>same(s,p)))continue;enemy.next=d;return}enemy.next=opts[0]||enemy.dir}
+function heuristic(h,d,t){let x=h.x+d.x,y=h.y+d.y;let danger=(x<1||x>COLS-2||y<1||y>ROWS-2)?5:0;let p={x,y};if(enemy.body.slice(0,-1).some(s=>same(s,p))||player.body.slice(0,-1).some(s=>same(s,p))||obstacles.some(s=>same(s,p)))danger+=8;return Math.abs(x-t.x)+Math.abs(y-t.y)+danger}
+function emit(x,y,color,n=12){for(let i=0;i<n;i++){let a=Math.random()*Math.PI*2,v=20+Math.random()*85;particles.push({x:x*CW+CW/2,y:y*CH+CH/2,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:.45+Math.random()*.45,max:.9,color,size:1.5+Math.random()*3})}}
 let audioCtx=null;function play(freq=440,dur=.07){if(!sound)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();let o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(.055,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+dur)}catch(e){}}
 function toastMsg(s){toast.textContent=s;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),850)}
-function eat(s,isPlayer,p){let type=food.type;if(isPlayer){let now=performance.now();combo=now<comboUntil?Math.min(8,combo+1):1;comboUntil=now+2300;let mult=1+Math.min(7,combo-1)*.25;let pts=(type==='gold'?30:type==='star'?20:10)*mult;score+=Math.round(pts);scoreEl.textContent=score;foodCount++;emit(p.x,p.y,type==='gold'?'#ffd166':type==='ice'?'#58e7ff':type==='star'?'#d7a7ff':'#b8ff67',type==='gold'?22:13);play(type==='gold'?820:550,.08);if(combo>=3)toastMsg('COMBO ×'+mult.toFixed(1));if(foodCount%5===0){level++;$('level').textContent='LV.'+level;$('levelMeter').style.width=((foodCount%5)/5*100)+'%';toastMsg('LEVEL UP · '+level);play(880,.16);if(level>=3&&obstacles.length<6){let op=placeFree();obstacles.push(op)}}if(type==='ice'){slowUntil=performance.now()+3000;toastMsg('❄ 对手减速！')}if(type==='star'){combo=Math.min(8,combo+1);toastMsg('✦ 星核连击！')}}else{enemyScore+=type==='gold'?30:10;enemyScoreEl.textContent=enemyScore;emit(p.x,p.y,'#58e7ff',9);play(300,.04)}
-if(score>best){best=score;bestEl.textContent=best;try{localStorage.setItem('snakeBattleBest',best)}catch(e){}}placeFood();$('comboLabel').textContent='×'+(1+Math.min(7,combo-1)*.25).toFixed(2);$('comboPts').textContent=combo+' / 3'}
-function stepSnake(s,isPlayer){s.dir=s.next;let h=s.body[0],p={x:h.x+s.dir.x,y:h.y+s.dir.y};if(p.x<0||p.x>=N||p.y<0||p.y>=N||obstacles.some(o=>same(o,p))){if(isPlayer&&shield){shield=false;$('shieldBtn').textContent='🛡 护盾已消耗';toastMsg('护盾抵消碰撞！');return{dead:false,blocked:true}}return{dead:true}}let eating=same(p,food),own=s.body.slice(0,eating?s.body.length:s.body.length-1);if(own.some(o=>same(o,p))){if(isPlayer&&shield){shield=false;$('shieldBtn').textContent='🛡 护盾已消耗';toastMsg('护盾抵消碰撞！');return{dead:false,blocked:true}}return{dead:true}}if(player!==s&&player.body.slice(0,-1).some(o=>same(o,p))){return{dead:true}}s.body.unshift(p);if(!eating)s.body.pop();else eat(s,isPlayer,p);return{dead:false,head:p}}
-function tick(){aiTurn();let pNext={x:player.body[0].x+player.next.x,y:player.body[0].y+player.next.y},eNext={x:enemy.body[0].x+enemy.next.x,y:enemy.body[0].y+enemy.next.y};if(same(pNext,eNext)||same(pNext,enemy.body[0])&&same(eNext,player.body[0])){end(false,'双蛇对撞！','你和 AI 同时抢向同一格。<br>下一局试着先绕行，再截断对手路线。','💥');return}let p=stepSnake(player,true),e=stepSnake(enemy,false);if(p.dead&&e.dead){end(false,'双双出局','这场对决没有赢家。<br>换条路线，重新挑战！','💥');return}if(p.dead){end(false,'本局惜败','你的得分 '+score+' · AI 得分 '+enemyScore+'<br>使用冲刺抢食，护盾留给关键时刻。','🤖🏆');return}if(e.dead){end(true,'你统治了竞技场！','你的得分 '+score+' · AI 得分 '+enemyScore+'<br>漂亮的走位！再挑战更高分数。','🏆🐍');return}}
+function eat(s,isPlayer,p,fidx){fidx=(fidx===undefined)?0:fidx;let type=food[fidx].type;if(isPlayer){let now=performance.now();combo=now<comboUntil?Math.min(8,combo+1):1;comboUntil=now+2300;let mult=1+Math.min(7,combo-1)*.25;let pts=(type==='gold'?30:type==='star'?20:10)*mult;score+=Math.round(pts);scoreEl.textContent=score;foodCount++;emit(p.x,p.y,type==='gold'?'#ffd166':type==='ice'?'#58e7ff':type==='star'?'#d7a7ff':'#b8ff67',type==='gold'?22:13);play(type==='gold'?820:550,.08);if(combo>=3)toastMsg('COMBO ×'+mult.toFixed(1));if(foodCount%5===0){level++;$('level').textContent='LV.'+level;$('levelMeter').style.width=((foodCount%5)/5*100)+'%';toastMsg('LEVEL UP · '+level);play(880,.16);if(level>=3&&obstacles.length<6){let op=placeFree();obstacles.push(op)}}if(type==='ice'){slowUntil=performance.now()+3000;toastMsg('❄ 对手减速！')}if(type==='star'){combo=Math.min(8,combo+1);toastMsg('✦ 星核连击！')}}else{enemyScore+=type==='gold'?30:10;enemyScoreEl.textContent=enemyScore;emit(p.x,p.y,'#58e7ff',9);play(300,.04)}
+if(score>best){best=score;bestEl.textContent=best;try{localStorage.setItem('snakeBattleBest',best)}catch(e){}}food.splice(fidx,1);fillFood();$('comboLabel').textContent='×'+(1+Math.min(7,combo-1)*.25).toFixed(2);$('comboPts').textContent=combo+' / 3'}
+function stepSnake(s,isPlayer){s.dir=s.next;let h=s.body[0],p={x:h.x+s.dir.x,y:h.y+s.dir.y};if(p.x<0||p.x>=COLS||p.y<0||p.y>=ROWS||obstacles.some(o=>same(o,p))){if(isPlayer?shield:enemyShield){if(isPlayer){shield=false;$('shieldBtn').textContent='🛡 护盾已消耗'}else{enemyShield=false}toastMsg('护盾抵消碰撞！');return{dead:false,blocked:true}}return{dead:true}}let _fi=food.findIndex(f=>same(f,p)),eating=_fi>=0,_own=s.body.slice(0,eating?s.body.length:s.body.length-1);if(_own.some(o=>same(o,p))){if(isPlayer?shield:enemyShield){if(isPlayer){shield=false;$('shieldBtn').textContent='🛡 护盾已消耗'}else{enemyShield=false}toastMsg('护盾抵消碰撞！');return{dead:false,blocked:true}}return{dead:true}}let _oth=isPlayer?enemy:player;if(_oth&&_oth.body.slice(0,-1).some(o=>same(o,p))){if(isPlayer?shield:enemyShield){if(isPlayer){shield=false;$('shieldBtn').textContent='🛡 护盾已消耗'}else{enemyShield=false}toastMsg('护盾抵消碰撞！');return{dead:false,blocked:true}}return{dead:true}}s.body.unshift(p);if(!eating)s.body.pop();else eat(s,isPlayer,p,_fi);return{dead:false,head:p}}
+function tick(){if(net&&net.role==='guest')return;aiTurn();let pNext={x:player.body[0].x+player.next.x,y:player.body[0].y+player.next.y},eNext={x:enemy.body[0].x+enemy.next.x,y:enemy.body[0].y+enemy.next.y};if(same(pNext,eNext)||same(pNext,enemy.body[0])&&same(eNext,player.body[0])){end(false,'双蛇对撞！','你和 AI 同时抢向同一格。<br>下一局试着先绕行，再截断对手路线。','💥');return}let p=stepSnake(player,true),e=stepSnake(enemy,false);if(p.dead&&e.dead){end(false,'双双出局','这场对决没有赢家。<br>换条路线，重新挑战！','💥');return}if(p.dead){end(false,'本局惜败','你的得分 '+score+' · AI 得分 '+enemyScore+'<br>使用冲刺抢食，护盾留给关键时刻。','🤖🏆');return}if(e.dead){end(true,'你统治了竞技场！','你的得分 '+score+' · AI 得分 '+enemyScore+'<br>漂亮的走位！再挑战更高分数。','🏆🐍');return}}
 function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
-function draw(){ctx.clearRect(0,0,W,W);let bg=ctx.createLinearGradient(0,0,W,W);bg.addColorStop(0,'#0b1928');bg.addColorStop(1,'#09111f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,W);for(let y=0;y<N;y++)for(let x=0;x<N;x++){ctx.fillStyle=(x+y)%2?'#0d1b2b':'#0b1727';ctx.fillRect(x*CELL,y*CELL,CELL,CELL)}ctx.strokeStyle='#30455c70';ctx.lineWidth=1;ctx.strokeRect(.5,.5,W-1,W-1);
-obstacles.forEach(o=>{ctx.shadowColor='#ff6d9c';ctx.shadowBlur=8;let g=ctx.createLinearGradient(o.x*CELL,o.y*CELL,(o.x+1)*CELL,(o.y+1)*CELL);g.addColorStop(0,'#ff8ba9');g.addColorStop(1,'#b83e6b');ctx.fillStyle=g;roundRect(o.x*CELL+2,o.y*CELL+2,16,16,5);ctx.fill();ctx.shadowBlur=0});
-if(food){let cx=food.x*CELL+10,cy=food.y*CELL+10,t=performance.now()/300;let color=food.type==='gold'?'#ffd166':food.type==='ice'?'#58e7ff':food.type==='star'?'#d6a2ff':'#ff708e';ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.18);ctx.shadowColor=color;ctx.shadowBlur=food.type==='normal'?12:20;ctx.fillStyle=color;if(food.type==='star'){ctx.beginPath();for(let i=0;i<10;i++){let r=i%2?4:8,a=-Math.PI/2+i*Math.PI/5;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill()}else{ctx.beginPath();ctx.arc(0,0,food.type==='normal'?6:7+Math.sin(t)*.8,0,Math.PI*2);ctx.fill()}ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.globalAlpha=.7;ctx.beginPath();ctx.arc(-2,-2,2,0,Math.PI*2);ctx.fill();ctx.restore()}
-function snake(s,headColor,bodyColor){for(let i=s.body.length-1;i>=0;i--){let p=s.body[i],head=i===0,pad=head?1.5:2.5;let g=ctx.createLinearGradient(p.x*CELL,p.y*CELL,(p.x+1)*CELL,(p.y+1)*CELL);g.addColorStop(0,head?headColor:bodyColor);g.addColorStop(1,bodyColor);ctx.fillStyle=g;ctx.globalAlpha=Math.max(.36,1-i*.025);ctx.shadowColor=head?headColor:'transparent';ctx.shadowBlur=head?13:0;roundRect(p.x*CELL+pad,p.y*CELL+pad,CELL-pad*2,CELL-pad*2,head?6:5);ctx.fill();ctx.shadowBlur=0;if(head){ctx.globalAlpha=1;ctx.fillStyle='#08111b';let dx=s.dir.x,dy=s.dir.y,ex=p.x*CELL+10+dx*3,ey=p.y*CELL+10+dy*3;if(dx){ctx.beginPath();ctx.arc(ex,ey-4,1.8,0,7);ctx.arc(ex,ey+4,1.8,0,7);ctx.fill()}else{ctx.beginPath();ctx.arc(ex-4,ey,1.8,0,7);ctx.arc(ex+4,ey,1.8,0,7);ctx.fill()}}}ctx.globalAlpha=1}
-snake(player,'#e0ff9e','#74d85c');snake(enemy,'#a2f5ff','#37b8d6');if(shield&&player){ctx.strokeStyle='#8beeff';ctx.lineWidth=2;ctx.shadowColor='#58e7ff';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(player.body[0].x*CELL+10,player.body[0].y*CELL+10,12,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
+function fitGrid(){
+  let r=canvas.getBoundingClientRect();
+  let vw=Math.max(120,r.width||420), vh=Math.max(120,r.height||420);
+  let dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.round(vw*dpr); canvas.height=Math.round(vh*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  W=vw; H=vh;
+  // 格子尺寸固定（沿用原版比例：原版 21 格约占屏幕短边的 84%），
+  // 因此全屏不会把格子/蛇放大，而是显示更多格子 = 更宽视野。
+  let cell=Math.max(10,Math.min(26,Math.min(vw,vh)*0.04));
+  COLS=Math.max(21,Math.min(64,Math.floor(vw/cell)));
+  ROWS=Math.max(15,Math.min(40,Math.floor(vh/cell)));
+  CW=vw/COLS; CH=vh/ROWS;
+}
+function fitGridSafe(){
+  fitGrid();
+  let cl=(b)=>{ if(!b)return b; b.forEach(function(c){
+    c.x=Math.max(0,Math.min(COLS-1,c.x)); c.y=Math.max(0,Math.min(ROWS-1,c.y)); }); return b; };
+  if(player){ cl(player.body); player.body[0].x=Math.max(0,Math.min(COLS-1,player.body[0].x)); }
+  if(enemy){ cl(enemy.body); }
+  if(obstacles) obstacles=obstacles.filter(function(o){return o.x<COLS&&o.y<ROWS});
+  food=(Array.isArray(food)?food:[]).filter(function(f){return f.x<COLS&&f.y<ROWS});fillFood();
+  draw();
+}
+window.addEventListener('resize',function(){ fitGridSafe(); });
+window.addEventListener('orientationchange',function(){ setTimeout(fitGridSafe,220); });
+function draw(){ctx.clearRect(0,0,W,H);let bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#0b1928');bg.addColorStop(1,'#09111f');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){ctx.fillStyle=(x+y)%2?'#0d1b2b':'#0b1727';ctx.fillRect(x*CW,y*CH,CW+1,CH+1)}ctx.strokeStyle='#30455c70';ctx.lineWidth=1;ctx.strokeRect(.5,.5,W-1,H-1);
+obstacles.forEach(o=>{ctx.shadowColor='#ff6d9c';ctx.shadowBlur=8;let g=ctx.createLinearGradient(o.x*CW,o.y*CH,(o.x+1)*CW,(o.y+1)*CH);g.addColorStop(0,'#ff8ba9');g.addColorStop(1,'#b83e6b');ctx.fillStyle=g;roundRect(o.x*CW+CW*.1,o.y*CH+CH*.1,CW*.8,CH*.8,Math.min(CW,CH)*.26);ctx.fill();ctx.shadowBlur=0});
+(Array.isArray(food)?food:[]).forEach(function(fd){let _m=Math.min(CW,CH),cx=fd.x*CW+CW/2,cy=fd.y*CH+CH/2,t=performance.now()/300;let color=fd.type==='gold'?'#ffd166':fd.type==='ice'?'#58e7ff':fd.type==='star'?'#d6a2ff':'#ff708e';ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.18);ctx.shadowColor=color;ctx.shadowBlur=fd.type==='normal'?12:20;ctx.fillStyle=color;if(fd.type==='star'){ctx.beginPath();for(let i=0;i<10;i++){let r=i%2?_m*.2:_m*.4,a=-Math.PI/2+i*Math.PI/5;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r)}ctx.closePath();ctx.fill()}else{ctx.beginPath();ctx.arc(0,0,fd.type==='normal'?_m*.3:_m*.35+Math.sin(t)*_m*.04,0,Math.PI*2);ctx.fill()}ctx.shadowBlur=0;ctx.fillStyle='#fff';ctx.globalAlpha=.7;ctx.beginPath();ctx.arc(-_m*.1,-_m*.1,_m*.1,0,Math.PI*2);ctx.fill();ctx.restore()});
+function snake(s,headColor,bodyColor){let _m=Math.min(CW,CH);for(let i=s.body.length-1;i>=0;i--){let p=s.body[i],head=i===0,pad=head?_m*.075:_m*.125;let g=ctx.createLinearGradient(p.x*CW,p.y*CH,(p.x+1)*CW,(p.y+1)*CH);g.addColorStop(0,head?headColor:bodyColor);g.addColorStop(1,bodyColor);ctx.fillStyle=g;ctx.globalAlpha=Math.max(.36,1-i*.025);ctx.shadowColor=head?headColor:'transparent';ctx.shadowBlur=head?13:0;roundRect(p.x*CW+pad,p.y*CH+pad,CW-pad*2,CH-pad*2,head?_m*.3:_m*.25);ctx.fill();ctx.shadowBlur=0;if(head){ctx.globalAlpha=1;ctx.fillStyle='#08111b';let dx=s.dir.x,dy=s.dir.y,ex=p.x*CW+CW/2+dx*_m*.15,ey=p.y*CH+CH/2+dy*_m*.15,r=_m*.09;if(dx){ctx.beginPath();ctx.arc(ex,ey-_m*.2,r,0,7);ctx.arc(ex,ey+_m*.2,r,0,7);ctx.fill()}else{ctx.beginPath();ctx.arc(ex-_m*.2,ey,r,0,7);ctx.arc(ex+_m*.2,ey,r,0,7);ctx.fill()}}}ctx.globalAlpha=1}
+let _mc=['#e0ff9e','#74d85c'],_fc=['#a2f5ff','#37b8d6'];if(net&&net.role==='guest'){_mc=['#a2f5ff','#37b8d6'];_fc=['#e0ff9e','#74d85c']}snake(player,_mc[0],_mc[1]);snake(enemy,_fc[0],_fc[1]);if(shield&&player){ctx.strokeStyle='#8beeff';ctx.lineWidth=2;ctx.shadowColor='#58e7ff';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(player.body[0].x*CW+CW/2,player.body[0].y*CH+CH/2,Math.min(CW,CH)*.6,0,Math.PI*2);ctx.stroke();ctx.shadowBlur=0}
 particles.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1}
-function loop(now){if(!running)return;if(paused){raf=requestAnimationFrame(loop);return}let dt=Math.min(.05,(now-(loop.prev||now))/1000);loop.prev=now;particles=particles.filter(p=>p.life>0);particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=20*dt;p.life-=dt});if(combo&&now>comboUntil){combo=0;$('comboLabel').textContent='×1.0';$('comboPts').textContent='0 / 3';$('comboMeter').style.width='0%'}else if(combo){$('comboMeter').style.width=Math.max(0,(comboUntil-now)/2300*100)+'%'}let base=Math.max(62,(difficulty===0?165:difficulty===2?115:140)-Math.min(level*4,40));let speed=now<boostUntil?base*.52:base;if(now<slowUntil)speed*=1.3;if(now-last>=speed){last=now;tick()}draw();if(running)raf=requestAnimationFrame(loop)}
-$('boostBtn').addEventListener('click',()=>{if(!running||paused||boostUntil>0)return;boostUntil=performance.now()+3000;$('boostBtn').textContent='⚡ 冲刺中';$('skillHint').textContent='闪电冲刺已激活 · 3 秒';play(760,.12);setTimeout(()=>{if(boostUntil&&performance.now()>=boostUntil)$('boostBtn').textContent='⚡ 冲刺已用'},3100)});
-$('shieldBtn').addEventListener('click',()=>{if(!running||paused||shield)return;shield=true;$('shieldBtn').textContent='🛡 护盾就绪';$('skillHint').textContent='护盾已激活，可抵消一次碰撞';play(620,.12)});
+function loop(now){if(!running)return;if(paused){raf=requestAnimationFrame(loop);return}let dt=Math.min(.05,(now-(loop.prev||now))/1000);loop.prev=now;particles=particles.filter(p=>p.life>0);particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=20*dt;p.life-=dt});if(combo&&now>comboUntil){combo=0;$('comboLabel').textContent='×1.0';$('comboPts').textContent='0 / 3';$('comboMeter').style.width='0%'}else if(combo){$('comboMeter').style.width=Math.max(0,(comboUntil-now)/2300*100)+'%'}let base=Math.max(62,(difficulty===0?165:difficulty===2?115:140)-Math.min(level*4,40));let speed=now<boostUntil?base*.52:base;if(now<slowUntil)speed*=1.3;if(now-last>=speed){last=now;tick();if(net&&net.role==='host')netSend()}draw();if(running)raf=requestAnimationFrame(loop)}
+$('boostBtn').addEventListener('click',()=>{if(net&&net.role==='guest'){if(!running||paused)return;if(net.ws&&net.ws.readyState===1)net.ws.send(JSON.stringify({t:'a',k:'boost'}));return}if(!running||paused||boostUntil>0)return;boostUntil=performance.now()+3000;$('boostBtn').textContent='⚡ 冲刺中';$('skillHint').textContent='闪电冲刺已激活 · 3 秒';play(760,.12);setTimeout(()=>{if(boostUntil&&performance.now()>=boostUntil)$('boostBtn').textContent='⚡ 冲刺已用'},3100)});
+$('shieldBtn').addEventListener('click',()=>{if(net&&net.role==='guest'){if(!running||paused)return;if(net.ws&&net.ws.readyState===1)net.ws.send(JSON.stringify({t:'a',k:'shield'}));return}if(!running||paused||shield)return;shield=true;$('shieldBtn').textContent='🛡 护盾就绪';$('skillHint').textContent='护盾已激活，可抵消一次碰撞';play(620,.12)});
 startBtn.addEventListener('click',()=>{if(!player)reset();start()});$('restartBtn').addEventListener('click',()=>{reset();start()});
 $('pauseBtn').addEventListener('click',openPauseMenu);
 document.querySelectorAll('[data-dir]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();turn(b.dataset.dir)}));
@@ -203,6 +283,163 @@ canvas.addEventListener('pointerdown',e=>swipe={x:e.clientX,y:e.clientY});canvas
 $('soundBtn').addEventListener('click',()=>{sound=!sound;$('soundBtn').textContent=sound?'🔊 音效开启':'🔇 音效关闭';$('soundBtn').classList.toggle('active',sound);if(sound)play(520,.08)});
 $('difficultyBtn').addEventListener('click',()=>{difficulty=(difficulty+1)%3;let labels=['⚔️ 难度：休闲','⚔️ 难度：标准','⚔️ 难度：硬核'];$('difficultyBtn').textContent=labels[difficulty];toastMsg(['放松玩一局','标准竞技','AI 反应更快！'][difficulty]);if(difficulty===2)play(740,.1)});
 $('modeBtn').addEventListener('click',()=>show('竞技场规则','🍎 普通核心：+10 分<br>🟡 金核：+30 分<br>🔵 冰晶：减速 AI 3 秒<br>🟣 星核：强化连击<br>⚡ 冲刺 3 秒，每局一次<br>🛡 护盾抵消一次碰撞','✦','知道了'));
+
+/* ================= 联机对战模块（新增，单机行为不变） ================= */
+let net=null, netRoom='', netWin=null, enemyShield=false;
+let netSrv='ws://43.226.44.22:8765';
+try{let _sv=localStorage.getItem('snakeNetSrv');if(_sv)netSrv=_sv}catch(e){}
+
+function netStatus(t,err){let e=$('netStatus');e.textContent=t||'';e.style.color=err?'#ff9cb3':'#8fe3ff'}
+function netDrawCode(){
+  let c=$('netCode').children;
+  for(let i=0;i<4;i++){c[i].textContent=netRoom[i]||'·';c[i].style.color=netRoom[i]?'#b8ff67':'#2f4459'}
+  $('netJoin').disabled=netRoom.length!==4;
+}
+function netKey(k){
+  if(k==='clear')netRoom='';
+  else if(k==='back')netRoom=netRoom.slice(0,-1);
+  else if(netRoom.length<4)netRoom+=k;
+  netDrawCode();
+}
+(function buildKeys(){
+  let box=$('netKeys');
+  ['1','2','3','4','5','6','7','8','9','clear','0','back'].forEach(function(k){
+    let b=document.createElement('button');
+    b.textContent=k==='clear'?'清空':k==='back'?'⌫':k;
+    if(k==='clear'||k==='back')b.className='fn';
+    b.addEventListener('click',function(){netKey(k)});
+    box.appendChild(b);
+  });
+})();
+
+function netSend(){
+  if(!net||net.role!=='host'||!net.ws||net.ws.readyState!==1)return;
+  net.ws.send(JSON.stringify({t:'s',s:{
+    p:player,e:enemy,f:food,o:obstacles,sc:score,es:enemyScore,lv:level,
+    ov:ended?1:0,w:netWin
+  }}));
+}
+function netApply(st){
+  if(!st)return;
+  player=st.e; enemy=st.p;              /* 视角互换：我方=房主的对手蛇 */
+  score=st.es|0; enemyScore=st.sc|0;
+  food=st.f; obstacles=st.o||[];
+  if(st.lv!==undefined&&st.lv!==level){level=st.lv;$('level').textContent='LV.'+level}
+  scoreEl.textContent=score; enemyScoreEl.textContent=enemyScore;
+  if(st.ov&&!ended){
+    ended=true; running=false; netWin=st.w;
+    let won=(st.w==='guest'), draw=(st.w==='draw');
+    show(draw?'平局':(won?'你赢了！':'对手赢了'),
+         '我方 '+score+' 分 · 对手 '+enemyScore+' 分',
+         draw?'💥':(won?'🏆':'🤖'),'再战一局');
+  }else if(!st.ov&&ended){
+    ended=false; netWin=null;
+    overlay.classList.add('hidden');
+  }
+  if(!st.ov&&!running&&!paused){
+    running=true; last=performance.now(); loop.prev=performance.now();
+    cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+  }
+}
+function netGuestInput(d){
+  if(!net||net.role!=='host'||!running||paused||ended)return;
+  let v=dirs[d]; if(!v)return;
+  if(v.x===-enemy.dir.x&&v.y===-enemy.dir.y)return;
+  enemy.next=v;
+}
+function netMsg(m){
+  if(m.t==='wait'){ netStatus('⏳ 房间 '+netRoom+' 已建立，等待对手输入同一个数字…'); return; }
+  if(m.t==='full'){ netStatus('这个房间已满，换一个数字',true); netClose(); return; }
+  if(m.t==='start'){
+    if(!net)return;
+    net.role=m.role; netWin=null;
+    $('netPanel').classList.add('hidden');
+    $('mainMenu').classList.add('hidden');
+    $('pauseMenu').classList.add('hidden');
+    document.body.classList.add('in-game');
+    reset();
+    start();
+    toastMsg(net.role==='host'?'你是房主 · 开战！':'连上了 · 由房主同步战局');
+    return;
+  }
+  if(m.t==='s'&&net&&net.role==='guest'){ netApply(m.s); return; }
+  if(m.t==='i'&&net&&net.role==='host'){ netGuestInput(m.d); return; }
+  if(m.t==='a'&&net&&net.role==='host'){
+    if(m.k==='boost'&&running&&!paused){ boostUntil=performance.now()+3000; play(760,.12); }
+    if(m.k==='shield'){ enemyShield=true; toastMsg('对手使用了护盾'); }
+    return;
+  }
+  if(m.t==='peer_left'){
+    if(running||ended){
+      show('对手离开了','对方断开了连接，本局结束。','👋','返回主菜单');
+      startBtn.onclick=function(){location.reload()};
+      running=false; ended=true;
+    }
+    netStatus('对手已离开，等待其他人加入房间 '+netRoom+'…');
+    return;
+  }
+}
+function netClose(){
+  if(net&&net.ws){ try{net.ws.onclose=null;net.ws.close()}catch(e){} }
+  net=null; enemyShield=false;
+}
+function netConnect(){
+  netClose();
+  netStatus('正在连接服务器…');
+  let ws;
+  try{ ws=new WebSocket(netSrv); }catch(e){ netStatus('服务器地址无效',true); return; }
+  let cur={ws:ws,role:null,ready:false};
+  net=cur;
+  let guard=setTimeout(function(){
+    if(net===cur&&!cur.ready){ netStatus('连接超时，请检查网络',true); try{ws.close()}catch(e){} }
+  },9000);
+  ws.onopen=function(){
+    clearTimeout(guard); cur.ready=true;
+    netStatus('已连接 · 进入房间 '+netRoom+'…');
+    ws.send(JSON.stringify({t:'join',room:netRoom}));
+  };
+  ws.onerror=function(){ clearTimeout(guard); if(net===cur)netStatus('连接失败，请检查网络',true); };
+  ws.onclose=function(){
+    clearTimeout(guard);
+    if(net!==cur)return;
+    net=null;
+    if(running||ended){
+      running=false; ended=true;
+      show('连接已断开','与服务器的连接中断，本局结束。','📡','返回主菜单');
+      startBtn.onclick=function(){location.reload()};
+    }else{
+      netStatus('连接已断开，请重试',true);
+    }
+  };
+  ws.onmessage=function(ev){
+    let m; try{ m=JSON.parse(ev.data); }catch(e){ return; }
+    netMsg(m);
+  };
+}
+
+$('menuOnline').addEventListener('click',function(){
+  netRoom=''; netDrawCode(); netStatus(''); $('netSrv').value=netSrv;
+  $('netPanel').classList.remove('hidden');
+  $('mainMenu').classList.add('hidden');
+});
+$('netBack').addEventListener('click',function(){
+  netClose();
+  $('netPanel').classList.add('hidden');
+  $('mainMenu').classList.remove('hidden');
+  netStatus('');
+});
+$('netSrv').addEventListener('change',function(){
+  let v=this.value.trim();
+  if(v&&!/^wss?:\/\//i.test(v))v='ws://'+v;
+  netSrv=v||'ws://43.226.44.22:8765';
+  this.value=netSrv;
+  try{localStorage.setItem('snakeNetSrv',netSrv)}catch(e){}
+});
+$('netJoin').addEventListener('click',function(){
+  if(netRoom.length!==4){ netStatus('请输入 4 位数字',true); return; }
+  netConnect();
+});
+
 reset();
 
 // Landscape virtual joystick: drag to steer in four cardinal directions.
@@ -246,7 +483,7 @@ function resumeGame(){
 }
 function saveGame(){
  try{
-  const snap={version:1,score,enemyScore,best,combo,comboUntil:Math.max(0,comboUntil-performance.now()),level,foodCount,shield,boostUsed:boostUntil>0,slowRemaining:Math.max(0,slowUntil-performance.now()),difficulty,sound,player,enemy,food,obstacles};
+  const snap={version:1,score,enemyScore,best,combo,comboUntil:Math.max(0,comboUntil-performance.now()),level,foodCount,shield,boostUsed:boostUntil>0,slowRemaining:Math.max(0,slowUntil-performance.now()),difficulty,sound,player,enemy,food,obstacles,grid:[COLS,ROWS]};
   localStorage.setItem('snakeBattleSave',JSON.stringify(snap));
   $('saveNotice').textContent='✓ 存档成功！可以从主菜单继续游戏。';
   toastMsg('进度已保存');play(580,.08);
@@ -257,7 +494,7 @@ function loadGame(){
   const raw=localStorage.getItem('snakeBattleSave');if(!raw){$('saveNotice').textContent='暂无存档，先开始一局并在暂停菜单存档。';return false}
   const s=JSON.parse(raw);if(!s||s.version!==1||!s.player||!s.enemy||!s.food)throw Error('bad save');
   cancelAnimationFrame(raf);score=s.score||0;enemyScore=s.enemyScore||0;best=s.best||best;combo=s.combo||0;comboUntil=performance.now()+(s.comboUntil||0);level=s.level||1;foodCount=s.foodCount||0;shield=!!s.shield;boostUntil=s.boostUsed?1:0;slowUntil=performance.now()+(s.slowRemaining||0);difficulty=s.difficulty??1;sound=s.sound!==false;
-  player=s.player;enemy=s.enemy;food=s.food;obstacles=s.obstacles||[];particles=[];running=false;paused=false;ended=false;
+  player=s.player;enemy=s.enemy;food=Array.isArray(s.food)?s.food:[s.food];obstacles=s.obstacles||[];particles=[];running=false;paused=false;ended=false;
   scoreEl.textContent=score;enemyScoreEl.textContent=enemyScore;bestEl.textContent=best;$('level').textContent='LV.'+level;$('soundBtn').textContent=sound?'🔊 音效开启':'🔇 音效关闭';
   $('difficultyBtn').textContent=['⚔️ 难度：休闲','⚔️ 难度：标准','⚔️ 难度：硬核'][difficulty]||'⚔️ 难度：标准';
   $('boostBtn').textContent=s.boostUsed?'⚡ 冲刺已用':'⚡ 闪电冲刺';$('shieldBtn').textContent=shield?'🛡 护盾就绪':'🛡 能量护盾';$('skillHint').textContent='已恢复存档进度';
@@ -273,8 +510,8 @@ $('menuPauseExit').addEventListener('click',()=>{saveGame();openMainMenu()});
 $('settingsCorner').addEventListener('click',openPauseMenu);
 $('itemRefresh').addEventListener('click',()=>{
  if(!running||paused)return;
- placeFood();emit(food.x,food.y,food.type==='gold'?'#ffd166':food.type==='ice'?'#58e7ff':food.type==='star'?'#d6a2ff':'#ff708e',15);
- toastMsg(({normal:'普通核心刷新',gold:'金色加分核心刷新',ice:'冰晶减速道具刷新',star:'星核连击道具刷新'})[food.type]||'随机道具已刷新');
+ (Array.isArray(food)?food:[]).forEach(function(fd){emit(fd.x,fd.y,fd.type==='gold'?'#ffd166':fd.type==='ice'?'#58e7ff':fd.type==='star'?'#d6a2ff':'#ff708e',9)});food=[];fillFood();
+ toastMsg('道具已重新生成 ×'+food.length+'｜随机道具已刷新');
  play(640,.07);draw();
 });
 function openExitPrompt(){
@@ -286,6 +523,15 @@ function openExitPrompt(){
  $('menuExit').disabled=true;
 }
 
+
+window.__back=function(){
+  try{
+    if(!$('netPanel').classList.contains('hidden')){ $('netBack').click(); return true; }
+    if(!$('mainMenu').classList.contains('hidden')) return false;
+    if(!$('pauseMenu').classList.contains('hidden')){ resumeGame(); return true; }
+    return false;
+  }catch(e){ return false; }
+};
 })();
 </script>
 </body></html>

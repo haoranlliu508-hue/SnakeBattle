@@ -1,39 +1,52 @@
-# 贪吃蛇大战 Android 项目（进阶版）
+# Snake Battle · 贪吃蛇大战
 
-## 本次升级
-- 加入「加速冲刺」技能（3 秒）
-- 加入「护盾」技能（抵挡一次撞墙/撞自己）
-- 适配 Android WebView，可离线运行
-- 保留 AI 对手、得分、最高纪录、暂停/重开、触屏方向键与滑动控制
+Android WebView 单机 + 联机贪吃蛇游戏。原版玩法（横屏、虚拟摇杆、主/暂停菜单、存档、随机道具）保持不变，新增**4 位房间码双人对战**与**全屏自适应**。
 
-## 生成 APK 的方法
+## 本次升级（v2.0）
 
-### 方式一：Android Studio（电脑）
-1. 安装 Android Studio。
-2. 选择 **Open**，打开本文件夹 `SnakeBattle_Android_Project`。
-3. 等待 Gradle Sync 完成。
-4. 选择 **Build > Build Bundle(s) / APK(s) > Build APK(s)**。
-5. APK 通常位于 `app/build/outputs/apk/debug/app-debug.apk`。
+- **全屏自适应**：格子尺寸固定（沿用原版视觉比例），屏幕越大显示越多格子 —— 是扩大视野，不是把蛇放大
+- **联机对战**：主菜单「🌐 联机对战 · 双人」，两台手机输入同一个 4 位数字即可同场对战
+  - 先进房的人等待，后进房的人自动开局
+  - 房主负责模拟并广播战局，挑战者上报方向输入
+  - 默认中转服务器已内置，也可在面板里改成自己的地址
+- **食物按面积生成**：大棋盘保持原有食物密度，不会只剩一颗
+- **修复原版遗留 bug**：`stepSnake` 里原来只判定「AI 撞玩家死」，玩家撞 AI 会穿过去，已改为双向判定
 
-### 方式二：GitHub Actions 云端编译（不需要本地安装 Android Studio）
-1. 在 GitHub 新建一个仓库，把本项目文件上传。
-2. 打开仓库的 **Actions** 标签页。
-3. 选择 **Build Snake Battle APK**，点击 **Run workflow**。
-4. 工作流完成后打开运行记录，在 **Artifacts** 下载 `snake-battle-debug-apk`，解压后得到 `app-debug.apk`。
+## 编译方式
+
+### GitHub Actions（推荐）
+
+推送到 `main` 分支即自动编译，或在 Actions 页手动 Run workflow。
+完成后在运行记录的 **Artifacts** 下载 `snake-battle-debug-apk`。
+
+### 本地手工链路
+
+本机无 Gradle，用 `aapt2 → javac → d8 → zipalign → apksigner`：
+
+```bash
+sh build.sh
+```
+
+## 交付前自检
+
+**「构建成功」≠「功能正常」。** 装包前必须跑：
+
+```bash
+apk-preflight
+```
+
+6 道关：JS 语法 → 无头运行时（jsdom 真实加载+模拟点击）→ 交互路径 → 逻辑单测 → 构建 → 产物校验（含 APK 内资源与源文件 MD5 比对）。
+
+## 联机中转服务
+
+零依赖 Node WebSocket 中继，源码见 `relay/snake-relay.js`。
+
+```bash
+node relay/snake-relay.js      # 默认监听 8765
+```
+
+协议：客户端 `{t:'join',room:'1234'}`，房主广播 `{t:'s',s:{...}}`，挑战者上报 `{t:'i',d:'up'}`。
 
 ## 说明
-当前交付的是 Android Studio 工程源码，不是已编译 APK。当前运行环境没有 Android SDK/Gradle，因此无法在这里直接产出并验证 APK。首次安装 APK 时，Android 可能提示允许安装未知来源应用，请只安装自己构建并信任的文件。
 
-
-## 横屏操控版
-- 游戏强制横屏并启用沉浸式全屏，隐藏系统状态栏和导航栏。
-- 横屏左下角为虚拟摇杆，拖动控制方向；右侧为冲刺、护盾技能，旁边有暂停与重开。
-- 竖屏下保留原有页面布局与触控按钮。
-
-
-## 主菜单、存档与随机道具版
-- 首次进入横屏显示主菜单：开始游戏、保留存档/继续游戏、退出游戏。
-- 游戏右上角设置按钮打开暂停菜单：继续游戏、存档、退出到主菜单。
-- 存档保存在应用 WebView 的 localStorage 中，包含蛇的位置、分数、道具和难度等状态。
-- 游戏内“刷新道具”按钮可重新生成随机普通/金色/冰晶/星核道具。
-- 嵌入式网页不能强制关闭 Android 宿主应用；退出游戏按钮回到主菜单。
+嵌入式网页无法强制关闭 Android 宿主应用，「退出游戏」返回主菜单。

@@ -1,7 +1,9 @@
-build/
+*.iml
 .gradle/
-*.apk
-*.keystore
 local.properties
+.idea/
 .DS_Store
-*.idsig
+build/
+captures/
+.externalNativeBuild
+.cxx

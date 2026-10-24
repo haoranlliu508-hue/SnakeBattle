@@ -1,1 +1,2 @@
-# 由 Android Studio / CI 自动生成，无需提交
+# 复制为 local.properties 并改成你本机 SDK 路径（GitHub Actions 不需要）
+sdk.dir=/path/to/Android/Sdk
